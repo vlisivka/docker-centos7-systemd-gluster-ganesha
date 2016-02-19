@@ -1,3 +1,3 @@
 #!/bin/bash
 
-exec docker build -t vlisivka/centos7-systemd-gluster .
+exec docker build -t vlisivka/centos7-systemd-gluster-ganesha .

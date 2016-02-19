@@ -61,6 +61,8 @@ RUN systemctl enable \
     nfs-ganesha.service \
     nfs-ganesha-lock.service
 
+# NOTE: Portmapper can map any port for client, so use direct networking
+# instead of exposing of some ports.
 EXPOSE \
 # Portmapper
   111 \

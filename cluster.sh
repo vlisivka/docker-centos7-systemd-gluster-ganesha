@@ -6,7 +6,7 @@ set -ue
 BIN_DIR="$(dirname "$0")"
 
 BRICK_NAME="${BRICK_NAME:-centos7_gluster_brick}"
-DOCKER_IMAGE="${DOCKER_IMAGE:-vlisivka/centos7-systemd-gluster}"
+DOCKER_IMAGE="${DOCKER_IMAGE:-vlisivka/centos7-systemd-gluster-ganesha}"
 
 RUN_OPTIONS=( )
 
@@ -140,7 +140,7 @@ ENVIRONMENT VARIABLES
 
     BRICK_NAME - name for docker containers. Brick number will be appended to name. Default value: \"centos7_gluster_brick\".
 
-    DOCKER_IMAGE - name of image to run. Default value: \"vlisivka/centos7-systemd-gluster\".
+    DOCKER_IMAGE - name of image to run. Default value: \"vlisivka/centos7-systemd-gluster-ganesha\".
 
 EXAMPLES
 
