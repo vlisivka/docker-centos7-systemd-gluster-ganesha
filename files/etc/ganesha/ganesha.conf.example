@@ -1,0 +1,98 @@
+###################################################
+#
+# EXPORT
+#
+# Options documentation:
+#
+# Export permission options available in EXPORT_DEFAULTS, EXPORT, and CLIENT
+# blocks. If an option is not set in a more specific block, the next less
+# specific block will be considered, until finally the default is taken if
+# the option is not specified in any applicable block, following this order:
+# CLIENT, EXPORT, EXPORT_DEFAULTS, baked in default.
+#
+# Access_Type (NONE):	RW, RO, MDONLY, MDONLY_RO, NONE
+#			RW allows all opertations
+#			RO allows only operations that do not modify the server
+#			MDONLY does not allow READ or WRITE operations, but
+#				allows any other operation.
+#			MDONLY_RO does not allow READ, WRITE, or any operation
+#				that modifies file attributes or directory
+#				content
+#			NONE allows no access at all
+#
+# Protocols (3,4)	The Protocols allowed. NFSV3, NFSV4, and 9P may be
+#			specified. 3, 4, V3, V4, NFS3, and NFS4 may also be
+#			used.
+#
+# Transports (UDP, TCP)	The transport protocols allowed (UDP, TCP, and RDMA may
+#			be specified)
+#
+# Squash (Root_Squash)	What kind of user id squashing is performed:
+#			No_Root_Squash, NoIdSquash, None
+#				No user id squashing is performed
+#			Root, Root_Squash, RootSquash
+#				uid 0 and gid 0 are squashed to the
+#				Anonymous_Uid and Anonymous_Gid
+#				gid 0 in alt_groups lists is also squashed
+#			All, All_Squash, AllSquash
+#				All users are squashed
+#
+# Anonymous_Uid (-2)	If a user id is squashed, this is the uid used
+#			Ranges from -2147483648 to 4294967295
+#			uid are traditionally uint32_t however, tradition
+#			has long been to specify NFS anonynmous uid as -2
+#			so negative values are allowed
+#
+# Anonymous_Gid (-2)	If a group id is squashed, this is the gid used
+#			Ranges from -2147483648 to 4294967295
+#			gid are traditionally uint32_t however, tradition
+#			has long been to specify NFS anonynmous gid as -2
+#			so negative values are allowed
+#
+# SecType (none, sys)	The RPC security flavors allowed, none (AUTH_NONE),
+#			sys (AUTH_SYS/AUTH_UNIX), krb5 (RPCSEC_GSS),
+#			krb5i (RPCSEC_GSS), krb5p (RCSEC_GSS)
+#
+# PrivilegedPort (false)	If this option is true, client connections
+#				must originate from port < 1024. This is
+#				tradition based on some operating systems
+#				requiring a user to be a privileged user to
+#				create a socket with a source port < 1024
+#
+# Manage_Gids (false)	If this option is true, the alt groups list in
+#			AUTH_SYS credentials will be replaced by a server
+#			lookup of the group list. This allows bypassing the
+#			16 group limit of AUTH_SYS.
+#
+# Delegations (None)	The types of delegations that may be granted. (None, Read, Write,
+#			ReadWrite, R, W, and RW may be specified).
+#
+###################################################
+
+EXPORT
+{
+	# Export Id (mandatory, each EXPORT must have a unique Export_Id)
+	Export_Id = 77;
+
+	# Exported path (mandatory)
+	Path = /shared;
+
+	# Pseudo Path (required for NFS v4)
+	Pseudo = /shared;
+
+	# Required for access (default is None)
+	# Could use CLIENT blocks instead
+	Access_Type = RW;
+        Squash = No_root_squash;
+        Disable_ACL = TRUE;
+        Protocols = 3, 4;
+        Transports = UDP, TCP;
+        SecType = "sys";
+
+	# Exporting FSAL
+	FSAL {
+		Name = GLUSTER;
+                Hostname = "18.16.17.2";
+                Volume = "shared";
+	}
+}
