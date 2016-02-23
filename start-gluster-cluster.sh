@@ -6,9 +6,9 @@ BIN_DIR="$(dirname "$0")"
 NUM=3
 
 # Unmount gluster filesystem used for testing, if any.
-sudo umount "$HOME/tmp/gluster" || :
+sudo umount -f "$HOME/tmp/gluster" || :
 # Unmount nfs filesystem used for testing, if any.
-sudo umount "$HOME/tmp/nfs" || :
+sudo umount -f "$HOME/tmp/nfs" || :
 
 #
 # (Re)start cluster
@@ -62,7 +62,7 @@ done
 # Note: When using hostnames, the first server needs to be probed from one other server to set its hostname.
 
 # Wait until peers will join
-sleep 3
+sleep 4
 
 # Check status of peers
 m gluster peer status
@@ -88,8 +88,8 @@ m gluster volume start shared
 #
 
 # Mount volume "shared" on bricks for nfs-ganesha to work
-a mkdir -p "/shared"
-a mount -t glusterfs "$IP_OF_MASTER:/shared" "/shared"
+#a mkdir -p "/shared"
+#a mount -t glusterfs "$IP_OF_MASTER:/shared" "/shared"
 
 # Enable parallel NFS
 m bash -c "echo 'GLUSTER { PNFS_MDS = true; }' >> /etc/ganesha/ganesha.conf"
@@ -115,17 +115,19 @@ a systemctl restart nfs-ganesha
 sleep 30
 
 # Check is configuration is exported via nfs
+m gluster volume info
 m showmount -e
-
 
 #
 # Mount Gluster and NFS for testing
 #
 
 # Mount shared volume via gluster on host for testing
+echo "INFO: Mounting glusterfs from \"$IP_OF_MASTER:/shared\" to \"$HOME/tmp/gluster\"."
 mkdir -p "$HOME/tmp/gluster"
 sudo mount -t glusterfs "$IP_OF_MASTER:/shared" "$HOME/tmp/gluster"
 
 # Mount shared volume via nfs on host for testing
+echo "INFO: Mounting NFS 4.1 from \"$IP_OF_MASTER:/shared\" to \"$HOME/tmp/nfs\"."
 mkdir -p "$HOME/tmp/nfs"
 sudo mount -t nfs -o vers=4.1,proto=tcp "$IP_OF_MASTER:/shared" "$HOME/tmp/nfs"

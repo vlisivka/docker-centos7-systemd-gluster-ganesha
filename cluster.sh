@@ -34,7 +34,7 @@ run_brick() {
 
   local NAME="$BRICK_NAME$BRICK_NUMBER"
 
-  docker run "${RUN_OPTIONS[@]:+${RUN_OPTIONS[@]}}" -d --privileged=true --stop-signal=$(kill -l RTMIN+3) -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name "$NAME" "$DOCKER_IMAGE"
+  docker run "${RUN_OPTIONS[@]:+${RUN_OPTIONS[@]}}" -d --cap-add=SYS_ADMIN --stop-signal=$(kill -l RTMIN+3) -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name "$NAME" "$DOCKER_IMAGE"
 }
 
 stop_brick() {
@@ -70,6 +70,14 @@ ip_of_brick() {
   exec_brick "$BRICK_NUMBER" hostname -I | cut -d ' ' -f 1
 }
 
+logs_of_brick() {
+  local BRICK_NUMBER="${1:?ERROR: Argument is required: brick number.}"
+
+  local NAME="$BRICK_NAME$BRICK_NUMBER"
+
+  docker logs "$NAME"
+}
+
 main() {
   local COMMAND="${1:?ERROR: Argument is required: command to run. Use --help to list available commands.}"
   shift 1
@@ -99,6 +107,12 @@ main() {
     ip_of_one)
       ip_of_brick "$@" || return $?
     ;;
+    logs_of)
+      mul logs_of_brick "$@" || return $?
+    ;;
+    logs_of_one)
+      logs_of_brick "$@" || return $?
+    ;;
     help|--help|-h)
       echo "
 NAME
@@ -110,7 +124,7 @@ SYNOPSIS
 
 DESCRIPTION
 
-    COMMAND  - run stop exec exec_one exec_it exec_it_one ip_of ip_of_one help
+    COMMAND  - run stop exec exec_one exec_it exec_it_one ip_of ip_of_one logs_of logs_of_one help
 
     NUM - number of bricks or number of a brick.
 
@@ -133,6 +147,10 @@ COMMANDS
     ip_of - print internal IP of each node.
 
     ip_of_one - print internal IP of a node.
+
+    logs_of - print docker logs of each node.
+
+    logs_of_one - print docker logs of a node.
 
     help - print this help.
 

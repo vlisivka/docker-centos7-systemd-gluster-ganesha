@@ -8,7 +8,7 @@ ENV TERM xterm
 RUN yum install -y epel-release.noarch centos-release-gluster37.noarch
 
 # Install packages
-RUN yum -y swap -- install \
+RUN yum -y install \
 # GlusterFS packages
   glusterfs \
   glusterfs-server \
@@ -25,21 +25,13 @@ RUN yum -y swap -- install \
 
 # Tool to set/check extended attributes on files
   attr \
+  which \
 
 # dbus-send is required by glusterfs-ganesha
   dbus \
 
 # Tools for developers
-  mc htop net-tools bash-completion \
-
-# Glusterfs requires nfsutils,
-# nfsutils requires kmod, which in turn required drac,
-# which requires systemd >219, while systemd-container is 208,
-# so remove systemd-container to avoid conflicts.
-# FIXME: recompile glusterfs without kernel nfs server.
-  -- remove \
-  systemd-container \
-  systemd-container-libs
+  mc htop net-tools bash-completion
 
 RUN yum install -y glusterfs-ganesha \
   && yum -y clean all
