@@ -35,17 +35,30 @@ restart_cluster() {
 #
 get_ip_addresses_of_nodes() {
   IP_ADDRESSES=( )
+  MAP=""
+  NODES=( )
   for((I=1; I<=NUMBER_OF_BRICKS; I++))
   do
-    IP_ADDRESSES+=( "$("$CLUSTER_DRIVER" ip_of_one "$I")" )
+    local IP="$("$CLUSTER_DRIVER" ip_of_one "$I")"
+    IP_ADDRESSES+=( "$IP" )
+    MAP="$MAP$IP node$I"$'\n'
+    NODES+=( "node$I" )
+  done
+
+  echo "MAP: $MAP"
+
+  for((I=1; I<=NUMBER_OF_BRICKS; I++))
+  do
+    a bash -c "echo '$MAP' >>/etc/hosts"
   done
 
   IP_OF_MASTER="${IP_ADDRESSES[0]}"
-  IP_OF_PEERS=( "${IP_ADDRESSES[@]:1}" )
+  MASTER="${NODES[0]}"
+  PEERS=( "${NODES[@]:1}" )
 
   echo "INFO: All IP Adresses: ${IP_ADDRESSES[*]}"
-  echo "INFO: Master server: $IP_OF_MASTER"
-  echo "INFO: Peers: ${IP_OF_PEERS[@]}"
+  echo "INFO: Master server: $MASTER ($IP_OF_MASTER)"
+  echo "INFO: Peers: ${PEERS[@]}"
 }
 
 #
@@ -68,10 +81,10 @@ a() {
 # Joint Gluster bricks to trusted pool
 #
 join_bricks_to_trusted_pool() {
-  for IP in "${IP_OF_PEERS[@]}"
+  for PEER in "${PEERS[@]}"
   do
     # Probe peers (join them to trusted pool).
-    m gluster peer probe "$IP"
+    m gluster peer probe "$PEER"
   done
   # Note: When using hostnames, the first server needs to be probed from one other server to set its hostname.
 
@@ -115,7 +128,7 @@ setup_gluster_volume() {
 setup_nfs_ganesha() {
 # Mount volume "shared" on bricks for nfs-ganesha to work
 #a mkdir -p "/shared"
-#a mount -t glusterfs "$IP_OF_MASTER:/shared" "/shared"
+#a mount -t glusterfs "$MASTER:/shared" "/shared"
 
 # Enable parallel NFS
 m bash -c "echo 'GLUSTER { PNFS_MDS = true; }' >> /etc/ganesha/ganesha.conf"

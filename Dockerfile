@@ -1,14 +1,32 @@
-FROM vlisivka/centos7-systemd-unpriv
+FROM docker.io/centos:7
 MAINTAINER Volodymyr M. Lisivka <vlisivka@gmail.com>
 
 # For proper work of console tools
 ENV TERM xterm
 
+# For proper work of systemd in container
+ENV container docker
+
+# NOTE: Systemd needs /sys/fs/cgroup directoriy to be mounted from host in
+# read-only mode.
+
+# Systemd needs /run directory to be a mountpoint, otherwise it will try
+# to mount tmpfs here (and will fail).
+VOLUME /run
+
+# Run systemd by default, to start required services.
+CMD ["/usr/sbin/init"]
+
+# NOTE: Run container with "--stop-signal=$(kill -l RTMIN+3)" option to
+# shutdown container using "docker stop CONTAINER", OR run
+# /usr/local/sbin/shutdown.sh script as root from container and then kill
+# container using "docker kill CONTAINER".
+
 # Install repositories
-RUN yum install -y epel-release.noarch centos-release-gluster37.noarch
+RUN yum install -y epel-release.noarch centos-release-gluster37.noarch && \
 
 # Install packages
-RUN yum -y install \
+  yum -y install \
 # GlusterFS packages
   glusterfs \
   glusterfs-server \
@@ -20,8 +38,7 @@ RUN yum -y install \
 # NFS server "ganesha", with built-in support for gluster.
   nfs-ganesha \
   nfs-ganesha-gluster \
-# Dependency problem with dbus, will be installed by next yum install command.
-#  glusterfs-ganesha \
+  glusterfs-ganesha \
 
 # Tool to set/check extended attributes on files
   attr \
@@ -31,19 +48,10 @@ RUN yum -y install \
   dbus \
 
 # Tools for developers
-  mc htop net-tools bash-completion
+  mc htop net-tools bash-completion \
 
-RUN yum install -y glusterfs-ganesha \
+# Clean cache to save space in layer
   && yum -y clean all
-
-# Mask (create override which points to /dev/null) system services, which
-# cannot be started in container anyway.
-#RUN systemctl mask \
-#    proc-fs-nfsd.mount \
-#    var-lib-nfs-rpc_pipefs.mount
-
-# Remove broken link
-RUN rm -f /usr/lib/systemd/system/dbus-org.freedesktop.network1.service
 
 # Enable services
 RUN systemctl enable \

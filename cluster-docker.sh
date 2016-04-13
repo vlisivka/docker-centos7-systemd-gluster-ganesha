@@ -34,7 +34,15 @@ run_brick() {
 
   local NAME="$BRICK_NAME$BRICK_NUMBER"
 
-  docker run "${RUN_OPTIONS[@]:+${RUN_OPTIONS[@]}}" -d --cap-add=SYS_ADMIN --ulimit nofile=1048576:1048576 --stop-signal=$(kill -l RTMIN+3) -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name "$NAME" "$DOCKER_IMAGE"
+  docker run "${RUN_OPTIONS[@]:+${RUN_OPTIONS[@]}}" \
+  -d \
+  -t \
+  --cap-add=SYS_ADMIN \
+  --ulimit nofile=1048576:1048576 \
+  --stop-signal=$(kill -l RTMIN+3) \
+  -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+  --name "$NAME" \
+  "$DOCKER_IMAGE"
 }
 
 stop_brick() {
